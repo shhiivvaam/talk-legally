@@ -1,0 +1,30 @@
+{
+  "name": "talk-legally",
+  "version": "1.0.0",
+  "description": "Lawyer Consultation Platform",
+  "private": true,
+  "workspaces": [
+    "backend/api-gateway",
+    "backend/services/*",
+    "mobile",
+    "admin-panel",
+    "lawyer-dashboard",
+    "user-dashboard"
+  ],
+  "scripts": {
+    "install:all": "npm install && npm run install:backend && npm run install:mobile && npm run install:web",
+    "install:backend": "cd backend/api-gateway && npm install && cd ../services && for /d %d in (*) do (cd %d && npm install && cd ..)",
+    "install:mobile": "cd mobile && npm install",
+    "install:web": "cd admin-panel && npm install && cd ../lawyer-dashboard && npm install && cd ../user-dashboard && npm install",
+    "dev": "docker-compose -f docker/docker-compose.yml up",
+    "migrate": "cd database && npm run migrate"
+  },
+  "keywords": [
+    "lawyer",
+    "consultation",
+    "legal",
+    "platform"
+  ],
+  "author": "",
+  "license": "UNLICENSED"
+}

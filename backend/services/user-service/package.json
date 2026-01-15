@@ -1,0 +1,24 @@
+{
+  "name": "@talk-legally/user-service",
+  "version": "1.0.0",
+  "description": "User Management Service",
+  "main": "dist/main.js",
+  "scripts": {
+    "build": "nest build",
+    "start": "nest start",
+    "start:dev": "nest start --watch"
+  },
+  "dependencies": {
+    "@nestjs/common": "^10.0.0",
+    "@nestjs/core": "^10.0.0",
+    "@nestjs/typeorm": "^10.0.0",
+    "@nestjs/config": "^3.0.0",
+    "typeorm": "^0.3.17",
+    "class-validator": "^0.14.0"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "^10.0.0",
+    "@types/node": "^20.3.1",
+    "typescript": "^5.1.3"
+  }
+}
