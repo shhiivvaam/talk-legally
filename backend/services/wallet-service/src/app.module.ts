@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { getPostgresConfig } from '@shared/database/postgres.config';
+import { LoggerModule } from '@shared/utils/logger.module';
 import { WalletController } from './wallet.controller';
 import { WalletService } from './wallet.service';
 import { TransactionService } from './transaction.service';
@@ -14,6 +15,7 @@ import { WalletTransaction } from '@shared/database/entities/wallet-transaction.
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    LoggerModule,
     TypeOrmModule.forRoot(getPostgresConfig()),
     TypeOrmModule.forFeature([User, Transaction, WalletTransaction]),
   ],

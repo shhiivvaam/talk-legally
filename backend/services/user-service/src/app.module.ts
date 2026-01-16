@@ -8,10 +8,12 @@ import { User } from '@shared/database/entities/user.entity';
 import { Lawyer } from '@shared/database/entities/lawyer.entity';
 import { Session } from '@shared/database/entities/session.entity';
 import { Favorite } from '@shared/database/entities/favorite.entity';
+import { LoggerModule } from '@shared/utils/logger.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    LoggerModule,
     TypeOrmModule.forRoot(getPostgresConfig()),
     TypeOrmModule.forFeature([User, Lawyer, Session, Favorite]),
   ],

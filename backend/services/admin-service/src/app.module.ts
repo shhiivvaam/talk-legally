@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { getPostgresConfig } from '@shared/database/postgres.config';
+import { LoggerModule } from '@shared/utils/logger.module';
 import { AdminController } from './admin.controller';
 import { AdminService } from './admin.service';
 import { VerificationController } from './verification.controller';
@@ -14,6 +15,7 @@ import { Transaction } from '@shared/database/entities/transaction.entity';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    LoggerModule,
     TypeOrmModule.forRoot(getPostgresConfig()),
     TypeOrmModule.forFeature([Lawyer, User, Session, Transaction]),
   ],

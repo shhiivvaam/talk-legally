@@ -13,12 +13,14 @@ import { GoogleStrategy } from './strategies/google.strategy';
 import { OtpService } from './otp.service';
 import { RedisModule } from '@nestjs-modules/ioredis';
 import { getRedisConfig } from '@shared/database/redis.config';
+import { LoggerModule } from '@shared/utils/logger.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    LoggerModule,
     TypeOrmModule.forRootAsync({
       useFactory: () => getPostgresConfig(),
     }),

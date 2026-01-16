@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { getMongoConfig } from '@shared/database/mongodb.config';
+import { LoggerModule } from '@shared/utils/logger.module';
 import { ChatGateway } from './chat.gateway';
 import { ChatService } from './chat.service';
 import { MessageService } from './message.service';
@@ -10,6 +11,7 @@ import { ChatMessage, ChatMessageSchema } from './schemas/chat-message.schema';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    LoggerModule,
     MongooseModule.forRootAsync({
       useFactory: () => getMongoConfig(),
     }),
