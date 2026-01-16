@@ -4,7 +4,7 @@ import { Repository, Between } from 'typeorm';
 import { Lawyer } from '@shared/database/entities/lawyer.entity';
 import { Session } from '@shared/database/entities/session.entity';
 import { LawyerEarning } from '@shared/database/entities/lawyer-earning.entity';
-import { AvailabilityStatus } from '@shared/types';
+import { AvailabilityStatus, VerificationStatus } from '@shared/types';
 import { UpdateProfileDto, UpdatePricingDto } from './dto/lawyer.dto';
 
 @Injectable()
@@ -16,7 +16,7 @@ export class LawyerService {
     private sessionRepository: Repository<Session>,
     @InjectRepository(LawyerEarning)
     private earningRepository: Repository<LawyerEarning>,
-  ) {}
+  ) { }
 
   async getProfile(lawyerId: string) {
     const lawyer = await this.lawyerRepository.findOne({
@@ -54,7 +54,7 @@ export class LawyerService {
 
     lawyer.barCouncilDocUrl = barCouncilDocUrl;
     lawyer.govtIdDocUrl = govtIdDocUrl;
-    lawyer.verificationStatus = 'pending'; // Reset to pending for re-verification
+    lawyer.verificationStatus = VerificationStatus.PENDING as VerificationStatus; // Reset to pending for re-verification
 
     return this.lawyerRepository.save(lawyer);
   }

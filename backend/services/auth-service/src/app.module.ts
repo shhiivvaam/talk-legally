@@ -19,7 +19,9 @@ import { getRedisConfig } from '@shared/database/redis.config';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    TypeOrmModule.forRoot(getPostgresConfig()),
+    TypeOrmModule.forRootAsync({
+      useFactory: () => getPostgresConfig(),
+    }),
     TypeOrmModule.forFeature([User, Lawyer]),
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.register({
@@ -36,4 +38,4 @@ import { getRedisConfig } from '@shared/database/redis.config';
   providers: [AuthService, OtpService, JwtStrategy, GoogleStrategy],
   exports: [AuthService, JwtModule],
 })
-export class AppModule {}
+export class AppModule { }

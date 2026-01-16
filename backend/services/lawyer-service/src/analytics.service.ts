@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Between } from 'typeorm';
 import { Session } from '@shared/database/entities/session.entity';
 import { LawyerEarning } from '@shared/database/entities/lawyer-earning.entity';
 
@@ -11,7 +11,7 @@ export class AnalyticsService {
     private sessionRepository: Repository<Session>,
     @InjectRepository(LawyerEarning)
     private earningRepository: Repository<LawyerEarning>,
-  ) {}
+  ) { }
 
   async getLawyerAnalytics(lawyerId: string, period: string = 'week') {
     const now = new Date();

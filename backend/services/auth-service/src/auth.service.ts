@@ -12,7 +12,7 @@ import { InjectRedis } from '@nestjs-modules/ioredis';
 import { Redis } from 'ioredis';
 import { User } from '@shared/database/entities/user.entity';
 import { Lawyer } from '@shared/database/entities/lawyer.entity';
-import { UserRole, JwtPayload } from '@shared/types';
+import { UserRole, JwtPayload, VerificationStatus } from '@shared/types';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { RegisterLawyerDto } from './dto/register-lawyer.dto';
 import { LoginDto } from './dto/login.dto';
@@ -110,7 +110,7 @@ export class AuthService {
       phone,
       passwordHash,
       name,
-      verificationStatus: 'pending',
+      verificationStatus: VerificationStatus.PENDING,
       isActive: false,
     });
 
