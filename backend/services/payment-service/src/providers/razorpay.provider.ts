@@ -28,7 +28,7 @@ export class RazorpayProvider {
 
       return {
         orderId: order.id,
-        amount: order.amount / 100,
+        amount: (order.amount as any) / 100,
         currency: order.currency,
         keyId: process.env.RAZORPAY_KEY_ID,
       };
@@ -76,7 +76,7 @@ export class RazorpayProvider {
       return {
         paymentId: payment.id,
         orderId: payment.order_id,
-        amount: payment.amount / 100,
+        amount: Number(payment.amount) / 100,
         status: 'success',
       };
     }

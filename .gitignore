@@ -12,6 +12,18 @@ yarn.lock
 dist/
 build/
 *.log
+*.tsbuildinfo
+
+# Generated JS/Maps in source folders
+backend/**/*.js
+backend/**/*.js.map
+!backend/**/jest.config.js
+!backend/**/.eslintrc.js
+
+# Prevent generated files in shared
+backend/shared/**/*.js
+backend/shared/**/*.d.ts
+backend/shared/**/*.js.map
 
 # IDE
 .vscode/

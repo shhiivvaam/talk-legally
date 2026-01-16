@@ -4,25 +4,31 @@
   "description": "Real-time Chat Service",
   "main": "dist/main.js",
   "scripts": {
-    "build": "nest build",
-    "start": "nest start",
-    "start:dev": "nest start --watch"
+    "build": "tsc && tsc-alias",
+    "start": "node dist/services/chat-service/src/main.js",
+    "start:dev": "concurrently \"tsc -w\" \"tsc-alias -w\" \"nodemon --watch dist/services/chat-service/src --delay 2 dist/services/chat-service/src/main.js\"",
+    "start:debug": "nest start --debug --watch",
+    "start:prod": "node dist/services/chat-service/src/main.js"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",
-    "@nestjs/core": "^10.0.0",
-    "@nestjs/websockets": "^10.0.0",
-    "@nestjs/platform-socket.io": "^10.0.0",
-    "@nestjs/mongoose": "^10.0.0",
     "@nestjs/config": "^3.0.0",
-    "mongoose": "^7.3.0",
-    "socket.io": "^4.6.0",
+    "@nestjs/core": "^10.0.0",
+    "@nestjs/mongoose": "^10.0.0",
+    "@nestjs/platform-socket.io": "^10.0.0",
+    "@nestjs/websockets": "^10.0.0",
+    "class-validator": "^0.14.0",
     "crypto": "^1.0.1",
-    "class-validator": "^0.14.0"
+    "dotenv": "^16.4.5",
+    "mongoose": "^7.3.0",
+    "socket.io": "^4.6.0"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.0.0",
     "@types/node": "^20.3.1",
+    "concurrently": "^9.2.1",
+    "nodemon": "^3.1.11",
+    "tsc-alias": "^1.8.16",
     "typescript": "^5.1.3"
   }
 }

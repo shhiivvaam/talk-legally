@@ -1,3 +1,6 @@
+import * as dotenv from 'dotenv';
+dotenv.config();
+
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
@@ -5,7 +8,7 @@ import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  
+
   app.useGlobalPipes(new ValidationPipe({
     whitelist: true,
     forbidNonWhitelisted: true,
@@ -22,7 +25,7 @@ async function bootstrap() {
   });
 
   await app.startAllMicroservices();
-  
+
   const port = process.env.PORT || 3002;
   await app.listen(port);
   console.log(`Wallet Service running on port ${port}`);
