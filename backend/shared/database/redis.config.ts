@@ -24,7 +24,7 @@ export const getRedisConfig = (): RedisModuleOptions => ({
     enableOfflineQueue: false,
 
     // Safety in multi-service environments
-    keyPrefix: process.env.REDIS_PREFIX || 'app:',
+    keyPrefix: process.env.REDIS_PREFIX || `${process.env.SERVICE_NAME || 'app'}:`,
 
     // Reconnect only on safe errors
     reconnectOnError: (err) =>
