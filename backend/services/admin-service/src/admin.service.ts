@@ -5,6 +5,7 @@ import { Lawyer } from '@shared/database/entities/lawyer.entity';
 import { User } from '@shared/database/entities/user.entity';
 import { Session } from '@shared/database/entities/session.entity';
 import { Transaction } from '@shared/database/entities/transaction.entity';
+import { VerificationStatus } from '@shared/types';
 
 @Injectable()
 export class AdminService {
@@ -17,23 +18,23 @@ export class AdminService {
     private sessionRepository: Repository<Session>,
     @InjectRepository(Transaction)
     private transactionRepository: Repository<Transaction>,
-  ) {}
+  ) { }
 
   async getPendingVerifications() {
     return this.lawyerRepository.find({
-      where: { verificationStatus: 'pending' },
+      where: { verificationStatus: VerificationStatus.PENDING },
       order: { createdAt: 'ASC' },
     });
   }
 
-  async verifyLawyer(lawyerId: string, status: 'approved' | 'rejected', notes?: string) {
+  async verifyLawyer(lawyerId: string, status: VerificationStatus, notes?: string) {
     const lawyer = await this.lawyerRepository.findOne({ where: { id: lawyerId } });
     if (!lawyer) {
       throw new NotFoundException('Lawyer not found');
     }
 
     lawyer.verificationStatus = status;
-    lawyer.isActive = status === 'approved';
+    lawyer.isActive = status === VerificationStatus.APPROVED;
     await this.lawyerRepository.save(lawyer);
 
     return { success: true, lawyer };
@@ -119,7 +120,7 @@ export class AdminService {
     const activeLawyers = await this.lawyerRepository
       .createQueryBuilder('lawyer')
       .where('lawyer.isActive = :active', { active: true })
-      .andWhere('lawyer.verificationStatus = :status', { status: 'approved' })
+      .andWhere('lawyer.verificationStatus = :status', { status: VerificationStatus.APPROVED })
       .getCount();
 
     return {
