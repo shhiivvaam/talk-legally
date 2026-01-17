@@ -3,6 +3,7 @@ import {
   UnauthorizedException,
   BadRequestException,
   ConflictException,
+  Optional,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -19,9 +20,12 @@ import { LoginDto } from './dto/login.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { GoogleAuthDto } from './dto/google-auth.dto';
 import { OtpService } from './otp.service';
+import { AppLoggerService } from '@shared/utils/logger.service';
 
 @Injectable()
 export class AuthService {
+  private readonly logger: AppLoggerService;
+
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
@@ -30,7 +34,12 @@ export class AuthService {
     private jwtService: JwtService,
     private otpService: OtpService,
     @InjectRedis() private readonly redis: Redis,
-  ) {}
+    @Optional() logger?: AppLoggerService,
+  ) {
+    // Use injected logger if available (from LoggerModule), otherwise create one
+    this.logger = logger || AppLoggerService.create('AuthService');
+    this.logger.setContext('AuthService');
+  }
 
   async registerUser(registerUserDto: RegisterUserDto) {
     const { email, phone, password, name, googleId } = registerUserDto;
@@ -72,6 +81,11 @@ export class AuthService {
 
     const savedUser = await this.userRepository.save(user);
 
+    this.logger.log('User registered successfully', 'AuthService', {
+      userId: savedUser.id,
+      email: savedUser.email,
+    });
+
     // Generate tokens
     const tokens = await this.generateTokens({
       userId: savedUser.id,
@@ -105,16 +119,17 @@ export class AuthService {
     const passwordHash = await bcrypt.hash(password, 12);
 
     // Create lawyer (verification status: pending)
-    const lawyer = this.lawyerRepository.create({
+    const lawyerData: Partial<Lawyer> = {
       email,
       phone,
       passwordHash,
       name,
       verificationStatus: VerificationStatus.PENDING,
       isActive: false,
-    });
+    };
 
-    const savedLawyer = await this.lawyerRepository.save(lawyer);
+    const lawyer = this.lawyerRepository.create(lawyerData);
+    const savedLawyer: Lawyer = await this.lawyerRepository.save(lawyer);
 
     // Send OTP for verification
     await this.otpService.sendOtp(email, phone);
@@ -143,6 +158,10 @@ export class AuthService {
     });
 
     if (!user) {
+      this.logger.warn('Login attempt with invalid credentials', 'AuthService', {
+        email,
+        phone,
+      });
       throw new UnauthorizedException('Invalid credentials');
     }
 
@@ -150,11 +169,20 @@ export class AuthService {
     if (user.passwordHash && password) {
       const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
       if (!isPasswordValid) {
+        this.logger.warn('Login attempt with invalid password', 'AuthService', {
+          userId: user.id,
+          email: user.email,
+        });
         throw new UnauthorizedException('Invalid credentials');
       }
     } else if (!user.googleId) {
       throw new UnauthorizedException('Password is required');
     }
+
+    this.logger.log('User logged in successfully', 'AuthService', {
+      userId: user.id,
+      email: user.email,
+    });
 
     // Generate tokens
     const tokens = await this.generateTokens({
@@ -251,6 +279,7 @@ export class AuthService {
 
       // Check if refresh token exists in Redis
       const storedToken = await this.redis.get(`refresh_token:${payload.userId}`);
+
       if (!storedToken || storedToken !== refreshToken) {
         throw new UnauthorizedException('Invalid refresh token');
       }
@@ -264,6 +293,7 @@ export class AuthService {
 
       return tokens;
     } catch (error) {
+      this.logger.error('Failed to refresh token', error.stack, 'AuthService');
       throw new UnauthorizedException('Invalid refresh token');
     }
   }
@@ -271,6 +301,8 @@ export class AuthService {
   async logout(userId: string) {
     // Remove refresh token from Redis
     await this.redis.del(`refresh_token:${userId}`);
+
+    this.logger.log('User logged out successfully', 'AuthService', { userId });
     return { message: 'Logged out successfully' };
   }
 
