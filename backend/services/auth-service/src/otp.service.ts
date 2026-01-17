@@ -1,14 +1,24 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException, Optional } from '@nestjs/common';
 import { InjectRedis } from '@nestjs-modules/ioredis';
 import { Redis } from 'ioredis';
+import { AppLoggerService } from '@shared/utils/logger.service';
 
 @Injectable()
 export class OtpService {
-  constructor(@InjectRedis() private readonly redis: Redis) {}
+  private readonly logger: AppLoggerService;
 
-  async sendOtp(email?: string, phone?: string): Promise<{ message: string }> {
+  constructor(
+    @InjectRedis() private readonly redis: Redis,
+    @Optional() logger?: AppLoggerService,
+  ) {
+    // Use injected logger if available (from LoggerModule), otherwise create one
+    this.logger = logger || AppLoggerService.create('OtpService');
+    this.logger.setContext('OtpService');
+  }
+
+  async sendOtp(email?: string, phone?: string): Promise<{ message: string; otp?: string }> {
     if (!email && !phone) {
-      throw new Error('Email or phone is required');
+      throw new BadRequestException('Email or phone is required');
     }
 
     // Generate 6-digit OTP
@@ -19,13 +29,16 @@ export class OtpService {
     await this.redis.set(key, otp, 'EX', 600);
 
     // In production, send OTP via SMS/Email service
-    // For now, we'll log it (remove in production)
-    console.log(`OTP for ${email || phone}: ${otp}`);
+    if (process.env.NODE_ENV !== 'production') {
+      this.logger.debug(`OTP for ${email || phone}: ${otp}`, 'OtpService');
+    } else {
+      this.logger.log(`OTP generated for ${email || phone}`, 'OtpService');
+    }
 
     return {
       message: 'OTP sent successfully',
       // Remove otp in production
-      otp: process.env.NODE_ENV === 'development' ? otp : undefined,
+      otp: process.env.NODE_ENV !== 'production' ? otp : undefined,
     };
   }
 
@@ -37,12 +50,11 @@ export class OtpService {
     const key = email ? `otp:email:${email}` : `otp:phone:${phone}`;
     const storedOtp = await this.redis.get(key);
 
-    if (!storedOtp || storedOtp !== otp) {
-      return false;
+    if (storedOtp && storedOtp === otp) {
+      await this.redis.del(key);
+      return true;
     }
 
-    // Delete OTP after verification
-    await this.redis.del(key);
-    return true;
+    return false;
   }
 }
