@@ -36,16 +36,19 @@ export class AgoraService {
     }
 
     // Generate token (valid for 24 hours)
-    const expirationTimeInSeconds = Math.floor(Date.now() / 1000) + 24 * 3600;
+    const expirationTimeInSeconds = 24 * 3600;
+    const currentTimestamp = Math.floor(Date.now() / 1000);
+    const privilegeExpiredTs = currentTimestamp + expirationTimeInSeconds;
     const role = RtcRole.PUBLISHER;
 
-    const token = RtcTokenBuilder.buildTokenWithUid(
+    const token = RtcTokenBuilder.buildTokenWithUserAccount(
       this.appId,
       this.appCertificate,
       channelName,
       userId,
       role,
-      expirationTimeInSeconds,
+      privilegeExpiredTs,
+      privilegeExpiredTs
     );
 
     // Save token to session
