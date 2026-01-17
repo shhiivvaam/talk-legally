@@ -8,7 +8,7 @@ You have PostgreSQL running locally on port 5432. We have two options:
 Skip Docker for PostgreSQL and use your existing installation.
 
 ### Option 2: Change Docker PostgreSQL Port
-Modify `docker/docker-compose.yml` to use a different port (e.g., 5433).
+Modify `docker/docker-compose.yml` to use a different port (e.g., 5432).
 
 ---
 
@@ -31,12 +31,12 @@ netstat -ano | findstr :5432
 1. Edit `docker/docker-compose.yml` and change PostgreSQL port:
    ```yaml
    ports:
-     - "5433:5432"  # Changed from 5432:5432
+     - "5432:5432"  # Changed from 5432:5432
    ```
 
-2. Update all `.env` files to use port 5433:
+2. Update all `.env` files to use port 5432:
    ```
-   DB_PORT=5433
+   DB_PORT=5432
    ```
 
 3. Start databases:
