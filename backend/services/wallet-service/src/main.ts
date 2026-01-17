@@ -5,30 +5,56 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { AppModule } from './app.module';
+import { AppLoggerService } from '@shared/utils/logger.service';
+
+process.env.SERVICE_NAME = process.env.SERVICE_NAME || 'wallet-service';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const logger = AppLoggerService.create('Bootstrap');
+  
+  try {
+    const app = await NestFactory.create(AppModule, {
+      logger: ['error', 'warn', 'log'],
+    });
 
-  app.useGlobalPipes(new ValidationPipe({
-    whitelist: true,
-    forbidNonWhitelisted: true,
-    transform: true,
-  }));
+    app.useLogger(app.get(AppLoggerService));
 
-  // TCP Microservice for internal communication
-  app.connectMicroservice<MicroserviceOptions>({
-    transport: Transport.TCP,
-    options: {
-      host: '0.0.0.0',
-      port: 3002,
-    },
-  });
+    app.useGlobalPipes(
+      new ValidationPipe({
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        transform: true,
+        disableErrorMessages: process.env.NODE_ENV === 'production',
+      })
+    );
 
-  await app.startAllMicroservices();
+    // TCP Microservice for internal communication
+    app.connectMicroservice<MicroserviceOptions>({
+      transport: Transport.TCP,
+      options: {
+        host: '0.0.0.0',
+        port: 3002,
+      },
+    });
 
-  const port = process.env.PORT || 3002;
-  await app.listen(port);
-  console.log(`Wallet Service running on port ${port}`);
+    await app.startAllMicroservices();
+
+    const port = process.env.PORT || 3002;
+    await app.listen(port);
+    
+    logger.log(`Wallet Service is running on port ${port}`, 'Bootstrap', {
+      environment: process.env.NODE_ENV || 'development',
+      port,
+      microservicePort: 3002,
+    });
+  } catch (error) {
+    logger.error(
+      'Failed to start Wallet Service',
+      error instanceof Error ? error.stack : String(error),
+      'Bootstrap'
+    );
+    process.exit(1);
+  }
 }
 
 bootstrap();

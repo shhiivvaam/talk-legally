@@ -4,24 +4,49 @@ dotenv.config();
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
+import { AppLoggerService } from '@shared/utils/logger.service';
+
+process.env.SERVICE_NAME = process.env.SERVICE_NAME || 'auth-service';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const logger = AppLoggerService.create('Bootstrap');
 
-  app.useGlobalPipes(new ValidationPipe({
-    whitelist: true,
-    forbidNonWhitelisted: true,
-    transform: true,
-  }));
+  try {
+    const app = await NestFactory.create(AppModule, {
+      logger: ['error', 'warn', 'log'],
+    });
 
-  app.enableCors({
-    origin: process.env.ALLOWED_ORIGINS?.split(',') || '*',
-    credentials: true,
-  });
+    app.useLogger(app.get(AppLoggerService));
 
-  const port = process.env.PORT || 3001;
-  await app.listen(port);
-  console.log(`Auth Service running on port ${port}`);
+    app.useGlobalPipes(
+      new ValidationPipe({
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        transform: true,
+        disableErrorMessages: process.env.NODE_ENV === 'production',
+      })
+    );
+
+    app.enableCors({
+      origin: process.env.ALLOWED_ORIGINS?.split(',') || '*',
+      credentials: true,
+    });
+
+    const port = process.env.PORT || 3001;
+    await app.listen(port);
+
+    logger.log(`Auth Service is running on port ${port}`, 'Bootstrap', {
+      environment: process.env.NODE_ENV || 'development',
+      port,
+    });
+  } catch (error) {
+    logger.error(
+      'Failed to start Auth Service',
+      error instanceof Error ? error.stack : String(error),
+      'Bootstrap'
+    );
+    process.exit(1);
+  }
 }
 
 bootstrap();
