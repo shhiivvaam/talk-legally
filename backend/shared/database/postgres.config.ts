@@ -9,7 +9,7 @@ export const getPostgresConfig = (): TypeOrmModuleOptions => ({
   database: process.env.DB_NAME || 'talk_legally',
   entities: [__dirname + '/../**/*.entity{.ts,.js}'],
   synchronize: process.env.NODE_ENV === 'development',
-  logging: process.env.NODE_ENV === 'development',
+  logging: ['error', 'warn', 'log', 'info'],
   migrations: [__dirname + '/../../database/migrations/*{.ts,.js}'],
   migrationsRun: false,
 });

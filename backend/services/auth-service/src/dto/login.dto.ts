@@ -12,4 +12,8 @@ export class LoginDto {
   @ValidateIf((o) => !o.email && !o.phone)
   @IsString()
   password?: string;
+
+  @IsOptional()
+  @IsString()
+  role?: 'user' | 'lawyer';
 }

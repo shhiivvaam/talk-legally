@@ -5,13 +5,14 @@ import axios, { AxiosInstance } from 'axios';
 export class ApiGatewayService {
   private services: Map<string, string> = new Map([
     ['/auth', process.env.AUTH_SERVICE_URL || 'http://localhost:3001'],
-    ['/users', process.env.USER_SERVICE_URL || 'http://localhost:3006'],
-    ['/lawyers', process.env.LAWYER_SERVICE_URL || 'http://localhost:3007'],
     ['/wallet', process.env.WALLET_SERVICE_URL || 'http://localhost:3002'],
     ['/payment', process.env.PAYMENT_SERVICE_URL || 'http://localhost:3003'],
     ['/sessions', process.env.SESSION_SERVICE_URL || 'http://localhost:3004'],
-    ['/admin', process.env.ADMIN_SERVICE_URL || 'http://localhost:3009'],
+    ['/chat', process.env.CHAT_SERVICE_URL || 'http://localhost:3005'],
+    ['/users', process.env.USER_SERVICE_URL || 'http://localhost:3006'],
+    ['/lawyers', process.env.LAWYER_SERVICE_URL || 'http://localhost:3007'],
     ['/notifications', process.env.NOTIFICATION_SERVICE_URL || 'http://localhost:3008'],
+    ['/admin', process.env.ADMIN_SERVICE_URL || 'http://localhost:3009'],
   ]);
 
   private httpClient: AxiosInstance;
@@ -32,7 +33,7 @@ export class ApiGatewayService {
 
     try {
       const targetUrl = `${serviceUrl}${path}${req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : ''}`;
-      
+
       const response = await this.httpClient({
         method: req.method,
         url: targetUrl,

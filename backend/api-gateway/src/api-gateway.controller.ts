@@ -54,4 +54,10 @@ export class ApiGatewayController {
     async proxyNotifications(@Req() req: Request, @Res() res: Response) {
         return this.apiGatewayService.proxyRequest(req, res);
     }
+
+    @All('chat/*splat')
+    @UseGuards(AuthGuard)
+    async proxyChat(@Req() req: Request, @Res() res: Response) {
+        return this.apiGatewayService.proxyRequest(req, res);
+    }
 }

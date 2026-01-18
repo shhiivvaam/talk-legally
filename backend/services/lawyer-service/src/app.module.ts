@@ -10,10 +10,12 @@ import { AnalyticsService } from './analytics.service';
 import { Lawyer } from '@shared/database/entities/lawyer.entity';
 import { Session } from '@shared/database/entities/session.entity';
 import { LawyerEarning } from '@shared/database/entities/lawyer-earning.entity';
+import { SharedAuthModule } from '@shared/auth/auth.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    SharedAuthModule,
     LoggerModule,
     TypeOrmModule.forRoot(getPostgresConfig()),
     TypeOrmModule.forFeature([Lawyer, Session, LawyerEarning]),
@@ -22,4 +24,4 @@ import { LawyerEarning } from '@shared/database/entities/lawyer-earning.entity';
   providers: [LawyerService, VerificationService, AnalyticsService],
   exports: [LawyerService],
 })
-export class AppModule {}
+export class AppModule { }

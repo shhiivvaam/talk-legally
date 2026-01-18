@@ -9,10 +9,12 @@ import { Lawyer } from '@shared/database/entities/lawyer.entity';
 import { Session } from '@shared/database/entities/session.entity';
 import { Favorite } from '@shared/database/entities/favorite.entity';
 import { LoggerModule } from '@shared/utils/logger.module';
+import { SharedAuthModule } from '@shared/auth/auth.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    SharedAuthModule,
     LoggerModule,
     TypeOrmModule.forRoot(getPostgresConfig()),
     TypeOrmModule.forFeature([User, Lawyer, Session, Favorite]),
@@ -21,4 +23,4 @@ import { LoggerModule } from '@shared/utils/logger.module';
   providers: [UserService],
   exports: [UserService],
 })
-export class AppModule {}
+export class AppModule { }

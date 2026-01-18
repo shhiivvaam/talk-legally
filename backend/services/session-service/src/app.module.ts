@@ -12,10 +12,12 @@ import { SessionMonitorService } from './session-monitor.service';
 import { Session } from '@shared/database/entities/session.entity';
 import { User } from '@shared/database/entities/user.entity';
 import { Lawyer } from '@shared/database/entities/lawyer.entity';
+import { SharedAuthModule } from '@shared/auth/auth.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    SharedAuthModule,
     LoggerModule,
     ScheduleModule.forRoot(),
     TypeOrmModule.forRoot(getPostgresConfig()),
@@ -25,4 +27,4 @@ import { Lawyer } from '@shared/database/entities/lawyer.entity';
   providers: [SessionService, BillingService, AgoraService, SessionMonitorService],
   exports: [SessionService],
 })
-export class AppModule {}
+export class AppModule { }

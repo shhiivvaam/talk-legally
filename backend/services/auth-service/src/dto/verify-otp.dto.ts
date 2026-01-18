@@ -16,4 +16,8 @@ export class VerifyOtpDto {
   @IsOptional()
   @IsString()
   userId?: string;
+
+  @IsOptional()
+  @IsString()
+  role?: 'user' | 'lawyer';
 }
