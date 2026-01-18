@@ -17,7 +17,11 @@
     "install:mobile": "cd mobile && npm install",
     "install:web": "cd admin-panel && npm install && cd ../lawyer-dashboard && npm install && cd ../user-dashboard && npm install",
     "dev": "docker-compose -f docker/docker-compose.yml up",
-    "migrate": "cd database && npm run migrate"
+    "migrate": "cd database && npm run migrate",
+    "start:backend": "concurrently -k -p \"[{name}]\" -n \"GATEWAY,ADMIN,AUTH,CHAT,LAWYER,NOTIF,PAY,SESS,USER,WALLET\" -c \"bgBlue.bold,bgMagenta.bold,bgGreen.bold,bgYellow.bold,bgCyan.bold,bgRed.bold,bgWhite.bold,bgBlack.bold,bgBlue,bgMagenta\" \"npm run start:dev -w @talk-legally/api-gateway\" \"npm run start:dev -w @talk-legally/admin-service\" \"npm run start:dev -w @talk-legally/auth-service\" \"npm run start:dev -w @talk-legally/chat-service\" \"npm run start:dev -w @talk-legally/lawyer-service\" \"npm run start:dev -w @talk-legally/notification-service\" \"npm run start:dev -w @talk-legally/payment-service\" \"npm run start:dev -w @talk-legally/session-service\" \"npm run start:dev -w @talk-legally/user-service\" \"npm run start:dev -w @talk-legally/wallet-service\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.0"
   },
   "keywords": [
     "lawyer",
