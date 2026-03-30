@@ -64,13 +64,13 @@ export class AuthController {
   @Post('logout')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
-  async logout(@Request() req) {
+  async logout(@Request() req: { user: { userId: string } }) {
     return this.authService.logout(req.user.userId);
   }
 
   @Get('me')
   @UseGuards(JwtAuthGuard)
-  async getProfile(@Request() req) {
+  async getProfile(@Request() req: { user: { userId: string; email: string; role: string } }) {
     return this.authService.getProfile(req.user);
   }
 }

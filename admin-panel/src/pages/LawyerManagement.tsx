@@ -3,8 +3,23 @@ import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper
 import { useQuery } from 'react-query';
 import { adminService } from '../services/api';
 
+interface LawyerSummary {
+  id: string;
+  name: string;
+  email: string;
+  verificationStatus: string;
+  ratingAvg: number;
+  totalEarnings: number;
+}
+
+interface LawyersResponse {
+  lawyers: LawyerSummary[];
+  total: number;
+}
+
 export default function LawyerManagement() {
-  const { data } = useQuery('lawyers', () => adminService.getLawyers(20, 0));
+  const { data: response } = useQuery('lawyers', () => adminService.getLawyers(20, 0));
+  const lawyersData = response?.data as LawyersResponse | undefined;
 
   return (
     <TableContainer component={Paper}>
@@ -19,7 +34,7 @@ export default function LawyerManagement() {
           </TableRow>
         </TableHead>
         <TableBody>
-          {data?.lawyers?.map((lawyer: any) => (
+          {lawyersData?.lawyers?.map((lawyer) => (
             <TableRow key={lawyer.id}>
               <TableCell>{lawyer.name}</TableCell>
               <TableCell>{lawyer.email}</TableCell>

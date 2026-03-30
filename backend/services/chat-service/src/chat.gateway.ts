@@ -7,6 +7,7 @@ import {
   MessageBody,
   ConnectedSocket,
 } from '@nestjs/websockets';
+import { Logger } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import { ChatService } from './chat.service';
 import { MessageService } from './message.service';
@@ -20,19 +21,21 @@ import { SendMessageDto } from './dto/message.dto';
 })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
-  server: Server;
+  server!: Server;
+
+  private readonly logger = new Logger(ChatGateway.name);
 
   constructor(
-    private chatService: ChatService,
-    private messageService: MessageService,
+    private readonly chatService: ChatService,
+    private readonly messageService: MessageService,
   ) {}
 
   async handleConnection(client: Socket) {
-    console.log(`Client connected: ${client.id}`);
+    this.logger.log(`Client connected: ${client.id}`);
   }
 
   async handleDisconnect(client: Socket) {
-    console.log(`Client disconnected: ${client.id}`);
+    this.logger.log(`Client disconnected: ${client.id}`);
     await this.chatService.handleDisconnect(client.id);
   }
 

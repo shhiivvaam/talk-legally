@@ -54,7 +54,7 @@ export class LawyerService {
 
     lawyer.barCouncilDocUrl = barCouncilDocUrl;
     lawyer.govtIdDocUrl = govtIdDocUrl;
-    lawyer.verificationStatus = VerificationStatus.PENDING as VerificationStatus; // Reset to pending for re-verification
+    lawyer.verificationStatus = VerificationStatus.PENDING; // Reset to pending for re-verification
 
     return this.lawyerRepository.save(lawyer);
   }
@@ -132,7 +132,7 @@ export class LawyerService {
     };
   }
 
-  async requestWithdrawal(lawyerId: string, amount: number, bankDetails: any) {
+  async requestWithdrawal(lawyerId: string, amount: number, bankDetails: Record<string, string>) {
     const lawyer = await this.lawyerRepository.findOne({ where: { id: lawyerId } });
     if (!lawyer) {
       throw new NotFoundException('Lawyer not found');

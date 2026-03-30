@@ -3,8 +3,23 @@ import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper
 import { useQuery } from 'react-query';
 import { adminService } from '../services/api';
 
+interface TransactionRecord {
+  id: string;
+  user?: { name: string };
+  transactionType: string;
+  amount: number;
+  status: string;
+  createdAt: string;
+}
+
+interface TransactionsResponse {
+  transactions: TransactionRecord[];
+  total: number;
+}
+
 export default function Transactions() {
-  const { data } = useQuery('transactions', () => adminService.getTransactions(50, 0));
+  const { data: response } = useQuery('transactions', () => adminService.getTransactions(50, 0));
+  const transactionsData = response?.data as TransactionsResponse | undefined;
 
   return (
     <TableContainer component={Paper}>
@@ -19,9 +34,9 @@ export default function Transactions() {
           </TableRow>
         </TableHead>
         <TableBody>
-          {data?.transactions?.map((transaction: any) => (
+          {transactionsData?.transactions?.map((transaction) => (
             <TableRow key={transaction.id}>
-              <TableCell>{transaction.user?.name || 'N/A'}</TableCell>
+              <TableCell>{transaction.user?.name ?? 'N/A'}</TableCell>
               <TableCell>{transaction.transactionType}</TableCell>
               <TableCell>₹{transaction.amount?.toFixed(2)}</TableCell>
               <TableCell>{transaction.status}</TableCell>

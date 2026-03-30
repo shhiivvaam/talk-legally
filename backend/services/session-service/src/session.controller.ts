@@ -4,6 +4,10 @@ import { AgoraService } from './agora.service';
 import { JwtAuthGuard } from '@shared/guards/jwt-auth.guard';
 import { CreateSessionDto, HeartbeatDto } from './dto/session.dto';
 
+interface AuthenticatedRequest {
+  user: { userId: string; email: string; role: string };
+}
+
 @Controller('sessions')
 @UseGuards(JwtAuthGuard)
 export class SessionController {
@@ -13,7 +17,7 @@ export class SessionController {
   ) {}
 
   @Post('create')
-  async createSession(@Request() req, @Body() createSessionDto: CreateSessionDto) {
+  async createSession(@Request() req: AuthenticatedRequest, @Body() createSessionDto: CreateSessionDto) {
     return this.sessionService.createSession(
       req.user.userId,
       createSessionDto.lawyerId,
@@ -37,7 +41,7 @@ export class SessionController {
   }
 
   @Get(':id/agora-token')
-  async getAgoraToken(@Param('id') id: string, @Request() req) {
+  async getAgoraToken(@Param('id') id: string, @Request() req: AuthenticatedRequest) {
     return this.agoraService.generateToken(id, req.user.userId);
   }
 

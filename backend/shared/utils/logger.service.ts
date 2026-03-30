@@ -64,7 +64,7 @@ export class AppLoggerService implements NestLoggerService {
       url: req.url,
       statusCode: res.statusCode,
       responseTime: responseTime ? `${responseTime}ms` : undefined,
-      ip: req.ip || req.connection?.remoteAddress,
+      ip: req.ip || req.socket?.remoteAddress,
       userAgent: req.get('user-agent'),
     });
   }

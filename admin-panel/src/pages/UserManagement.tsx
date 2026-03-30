@@ -3,8 +3,23 @@ import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper
 import { useQuery } from 'react-query';
 import { adminService } from '../services/api';
 
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  walletBalance: number;
+  createdAt: string;
+}
+
+interface UsersResponse {
+  users: User[];
+  total: number;
+}
+
 export default function UserManagement() {
-  const { data } = useQuery('users', () => adminService.getUsers(20, 0));
+  const { data: response } = useQuery('users', () => adminService.getUsers(20, 0));
+  const usersData = response?.data as UsersResponse | undefined;
 
   return (
     <TableContainer component={Paper}>
@@ -19,7 +34,7 @@ export default function UserManagement() {
           </TableRow>
         </TableHead>
         <TableBody>
-          {data?.users?.map((user: any) => (
+          {usersData?.users?.map((user) => (
             <TableRow key={user.id}>
               <TableCell>{user.name}</TableCell>
               <TableCell>{user.email}</TableCell>

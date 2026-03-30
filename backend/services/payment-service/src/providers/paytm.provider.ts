@@ -42,8 +42,9 @@ export class PaytmProvider {
         },
         url: `${this.baseUrl}/theia/processTransaction`,
       };
-    } catch (error) {
-      throw new BadRequestException(`Paytm order creation failed: ${error.message}`);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new BadRequestException(`Paytm order creation failed: ${message}`);
     }
   }
 
@@ -71,27 +72,28 @@ export class PaytmProvider {
 
       const data = response.data;
       return data.STATUS === 'TXN_SUCCESS';
-    } catch (error) {
-      throw new BadRequestException(`Payment verification failed: ${error.message}`);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new BadRequestException(`Payment verification failed: ${message}`);
     }
   }
 
-  async handleWebhook(body: any) {
+  async handleWebhook(body: Record<string, unknown>) {
     // Verify checksum
     const receivedChecksum = body.CHECKSUMHASH;
-    delete body.CHECKSUMHASH;
+    const { CHECKSUMHASH: _, ...bodyWithoutChecksum } = body;
 
-    const calculatedChecksum = this.generateChecksum(body);
+    const calculatedChecksum = this.generateChecksum(bodyWithoutChecksum as Record<string, string>);
 
     if (calculatedChecksum !== receivedChecksum) {
       throw new BadRequestException('Invalid webhook checksum');
     }
 
-    if (body.STATUS === 'TXN_SUCCESS') {
+    if (bodyWithoutChecksum.STATUS === 'TXN_SUCCESS') {
       return {
-        paymentId: body.TXNID,
-        orderId: body.ORDERID,
-        amount: parseFloat(body.TXNAMOUNT),
+        paymentId: bodyWithoutChecksum.TXNID,
+        orderId: bodyWithoutChecksum.ORDERID,
+        amount: parseFloat(String(bodyWithoutChecksum.TXNAMOUNT)),
         status: 'success',
       };
     }

@@ -3,9 +3,18 @@ import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { adminService } from '../services/api';
 
+interface PendingLawyer {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  verificationStatus: string;
+}
+
 export default function LawyerVerification() {
   const queryClient = useQueryClient();
-  const { data: pendingLawyers } = useQuery('pendingLawyers', () => adminService.getPendingVerifications());
+  const { data: response } = useQuery('pendingLawyers', () => adminService.getPendingVerifications());
+  const pendingLawyers = (response?.data ?? []) as PendingLawyer[];
 
   const verifyMutation = useMutation(
     ({ id, status }: { id: string; status: string }) => adminService.verifyLawyer(id, status),
@@ -29,7 +38,7 @@ export default function LawyerVerification() {
           </TableRow>
         </TableHead>
         <TableBody>
-          {pendingLawyers?.map((lawyer: any) => (
+          {pendingLawyers.map((lawyer) => (
             <TableRow key={lawyer.id}>
               <TableCell>{lawyer.name}</TableCell>
               <TableCell>{lawyer.email}</TableCell>

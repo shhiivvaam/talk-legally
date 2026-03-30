@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import axios, { AxiosInstance } from 'axios';
+import axios, { AxiosError, AxiosInstance } from 'axios';
+import { Request, Response } from 'express';
 
 @Injectable()
 export class ApiGatewayService {
-  private services: Map<string, string> = new Map([
+  private readonly services: ReadonlyMap<string, string> = new Map([
     ['/auth', process.env.AUTH_SERVICE_URL || 'http://localhost:3001'],
     ['/wallet', process.env.WALLET_SERVICE_URL || 'http://localhost:3002'],
     ['/payment', process.env.PAYMENT_SERVICE_URL || 'http://localhost:3003'],
@@ -15,7 +16,7 @@ export class ApiGatewayService {
     ['/admin', process.env.ADMIN_SERVICE_URL || 'http://localhost:3009'],
   ]);
 
-  private httpClient: AxiosInstance;
+  private readonly httpClient: AxiosInstance;
 
   constructor() {
     this.httpClient = axios.create({
@@ -23,7 +24,7 @@ export class ApiGatewayService {
     });
   }
 
-  async proxyRequest(req: any, res: any) {
+  async proxyRequest(req: Request, res: Response) {
     const path = req.path;
     const serviceUrl = this.findServiceUrl(path);
 
@@ -32,7 +33,8 @@ export class ApiGatewayService {
     }
 
     try {
-      const targetUrl = `${serviceUrl}${path}${req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : ''}`;
+      const queryString = req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : '';
+      const targetUrl = `${serviceUrl}${path}${queryString}`;
 
       const response = await this.httpClient({
         method: req.method,
@@ -46,8 +48,8 @@ export class ApiGatewayService {
       });
 
       return res.status(response.status).json(response.data);
-    } catch (error) {
-      if (error.response) {
+    } catch (error: unknown) {
+      if (error instanceof AxiosError && error.response) {
         return res.status(error.response.status).json(error.response.data);
       }
       return res.status(500).json({ message: 'Internal server error' });

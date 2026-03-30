@@ -28,12 +28,13 @@ export class RazorpayProvider {
 
       return {
         orderId: order.id,
-        amount: (order.amount as any) / 100,
+        amount: Number(order.amount) / 100,
         currency: order.currency,
         keyId: process.env.RAZORPAY_KEY_ID,
       };
-    } catch (error) {
-      throw new BadRequestException(`Razorpay order creation failed: ${error.message}`);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new BadRequestException(`Razorpay order creation failed: ${message}`);
     }
   }
 
@@ -52,12 +53,13 @@ export class RazorpayProvider {
       }
 
       return false;
-    } catch (error) {
-      throw new BadRequestException(`Payment verification failed: ${error.message}`);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new BadRequestException(`Payment verification failed: ${message}`);
     }
   }
 
-  async handleWebhook(body: any, signature: string) {
+  async handleWebhook(body: Record<string, unknown>, signature: string) {
     const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET || '';
     const text = JSON.stringify(body);
     const generatedSignature = crypto
@@ -70,7 +72,8 @@ export class RazorpayProvider {
     }
 
     const event = body.event;
-    const payment = body.payload.payment?.entity;
+    const payload = body.payload as Record<string, Record<string, Record<string, unknown>>> | undefined;
+    const payment = payload?.payment?.entity;
 
     if (event === 'payment.captured' && payment) {
       return {
