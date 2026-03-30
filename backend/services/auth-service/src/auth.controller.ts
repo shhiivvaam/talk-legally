@@ -16,10 +16,11 @@ import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { GoogleAuthDto } from './dto/google-auth.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { SendOtpDto, SendEmailOtpDto, SendPhoneOtpDto } from './dto/send-otp.dto';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(private readonly authService: AuthService) { }
 
   @Post('register/user')
   async registerUser(@Body() registerUserDto: RegisterUserDto) {
@@ -45,8 +46,20 @@ export class AuthController {
 
   @Post('otp/send')
   @HttpCode(HttpStatus.OK)
-  async sendOtp(@Body() body: { email?: string; phone?: string }) {
-    return this.authService.sendOtp(body.email, body.phone);
+  async sendOtp(@Body() sendOtpDto: SendOtpDto) {
+    return this.authService.sendOtp(sendOtpDto.email, sendOtpDto.phone);
+  }
+
+  @Post('otp/send/email')
+  @HttpCode(HttpStatus.OK)
+  async sendEmailOtp(@Body() sendEmailOtpDto: SendEmailOtpDto) {
+    return this.authService.sendOtp(sendEmailOtpDto.email, undefined);
+  }
+
+  @Post('otp/send/phone')
+  @HttpCode(HttpStatus.OK)
+  async sendPhoneOtp(@Body() sendPhoneOtpDto: SendPhoneOtpDto) {
+    return this.authService.sendOtp(undefined, sendPhoneOtpDto.phone);
   }
 
   @Post('otp/verify')

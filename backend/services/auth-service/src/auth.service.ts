@@ -44,20 +44,20 @@ export class AuthService {
   async registerUser(registerUserDto: RegisterUserDto) {
     const { email, phone, password, name, googleId } = registerUserDto;
 
+    if (!email && !phone) {
+      throw new BadRequestException('Either Email or Phone is required');
+    }
+
     // Check if user exists
     if (email) {
-      const existingUser = await this.userRepository.findOne({
-        where: { email },
-      });
+      const existingUser = await this.userRepository.findOne({ where: { email } });
       if (existingUser) {
         throw new ConflictException('User with this email already exists');
       }
     }
 
     if (phone) {
-      const existingUser = await this.userRepository.findOne({
-        where: { phone },
-      });
+      const existingUser = await this.userRepository.findOne({ where: { phone } });
       if (existingUser) {
         throw new ConflictException('User with this phone already exists');
       }
@@ -77,6 +77,7 @@ export class AuthService {
       googleId,
       name,
       isVerified: !!googleId, // Google users are pre-verified
+      role: 'user', // Default role
     });
 
     const savedUser = await this.userRepository.save(user);
@@ -86,10 +87,15 @@ export class AuthService {
       email: savedUser.email,
     });
 
+    // Send OTP if not Google auth
+    if (!googleId) {
+      await this.otpService.sendOtp(email, phone);
+    }
+
     // Generate tokens
     const tokens = await this.generateTokens({
       userId: savedUser.id,
-      email: savedUser.email,
+      email: savedUser.email || savedUser.phone, // Use available identifier
       role: UserRole.USER,
     });
 
@@ -97,6 +103,7 @@ export class AuthService {
       user: {
         id: savedUser.id,
         email: savedUser.email,
+        phone: savedUser.phone,
         name: savedUser.name,
         role: UserRole.USER,
       },
@@ -126,22 +133,26 @@ export class AuthService {
       name,
       verificationStatus: VerificationStatus.PENDING,
       isActive: false,
+      isEmailVerified: false,
+      isPhoneVerified: false,
     };
 
     const lawyer = this.lawyerRepository.create(lawyerData);
     const savedLawyer: Lawyer = await this.lawyerRepository.save(lawyer);
 
-    // Send OTP for verification
-    await this.otpService.sendOtp(email, phone);
+    // Send OTP for verification - BOTH Email and Phone
+    await this.otpService.sendOtp(email, undefined); // Send Email OTP
+    await this.otpService.sendOtp(undefined, phone); // Send Phone OTP
 
     return {
       lawyer: {
         id: savedLawyer.id,
         email: savedLawyer.email,
+        phone: savedLawyer.phone,
         name: savedLawyer.name,
         verificationStatus: savedLawyer.verificationStatus,
       },
-      message: 'Lawyer registered. Please verify OTP to complete registration.',
+      message: 'Lawyer registered. Please verify both Email and Mobile OTPs to complete registration.',
     };
   }
 
@@ -153,7 +164,7 @@ export class AuthService {
     }
 
     let entity: User | Lawyer | null = null;
-    let userRole = UserRole.USER;
+    let userRole: UserRole = UserRole.USER;
 
     if (role === 'lawyer') {
       entity = await this.lawyerRepository.findOne({
@@ -161,10 +172,19 @@ export class AuthService {
       });
       userRole = UserRole.LAWYER;
     } else {
+      // Normal User or Admin
       entity = await this.userRepository.findOne({
         where: email ? { email } : { phone },
       });
-      userRole = UserRole.USER;
+
+      if (entity) {
+        // Determine role from entity
+        if ((entity as User).role === 'admin') {
+          userRole = UserRole.ADMIN;
+        } else {
+          userRole = UserRole.USER;
+        }
+      }
     }
 
     if (!entity) {
@@ -186,7 +206,7 @@ export class AuthService {
         });
         throw new UnauthorizedException('Invalid credentials');
       }
-    } else if (userRole === UserRole.USER && !(entity as User).googleId) {
+    } else if (userRole !== UserRole.LAWYER && !(entity as User).googleId) {
       throw new UnauthorizedException('Password is required');
     }
 
@@ -199,7 +219,7 @@ export class AuthService {
     // Generate tokens
     const tokens = await this.generateTokens({
       userId: entity.id,
-      email: entity.email,
+      email: entity.email || entity.phone,
       role: userRole,
     });
 
@@ -269,6 +289,8 @@ export class AuthService {
   async verifyOtp(verifyOtpDto: VerifyOtpDto) {
     const { email, phone, otp, userId, role = 'user' } = verifyOtpDto;
 
+    // Verify Logic
+    // We strictly use the provided email or phone to key into the OTP store.
     const isValid = await this.otpService.verifyOtp(email, phone, otp);
     if (!isValid) {
       throw new UnauthorizedException('Invalid OTP');
@@ -277,18 +299,16 @@ export class AuthService {
     let entity: User | Lawyer | null = null;
     let userRole = UserRole.USER;
 
-    if (userId) {
-      // Legacy check by ID, assume user for now or check both
-      entity = await this.userRepository.findOne({ where: { id: userId } });
-      if (!entity) entity = await this.lawyerRepository.findOne({ where: { id: userId } });
+    // Find Entity
+    if (role === 'lawyer') {
+      entity = await this.lawyerRepository.findOne({ where: email ? { email } : { phone } });
+      userRole = UserRole.LAWYER;
     } else {
-      // Find by email/phone
-      if (role === 'lawyer') {
-        entity = await this.lawyerRepository.findOne({ where: email ? { email } : { phone } });
-        userRole = UserRole.LAWYER;
-      } else {
-        entity = await this.userRepository.findOne({ where: email ? { email } : { phone } });
-        userRole = UserRole.USER;
+      entity = await this.userRepository.findOne({ where: email ? { email } : { phone } });
+
+      if (entity) {
+        if ((entity as User).role === 'admin') userRole = UserRole.ADMIN;
+        else userRole = UserRole.USER;
       }
     }
 
@@ -296,27 +316,25 @@ export class AuthService {
       throw new UnauthorizedException('User not found');
     }
 
-    // Role auto-detection if found by ID
-    if (!entity.hasOwnProperty('googleId')) { // Rough check if it's a Lawyer (Lawyers don't have googleId in this schema?)
-      // Better check: 
-      if ((entity as any).verificationStatus) userRole = UserRole.LAWYER;
-      else userRole = UserRole.USER;
-    }
-
-    // Update verification status
-    if (userRole === UserRole.USER) {
+    // Update Verification Status
+    if (userRole === UserRole.LAWYER) {
+      const lawyer = entity as Lawyer;
+      if (email) {
+        lawyer.isEmailVerified = true;
+      }
+      if (phone) {
+        lawyer.isPhoneVerified = true;
+      }
+      await this.lawyerRepository.save(lawyer);
+    } else if (userRole === UserRole.USER) {
       (entity as User).isVerified = true;
       await this.userRepository.save(entity as User);
-    } else {
-      // For lawyers, we don't automatically approve, but we can perhaps mark email/phone as valid?
-      // Currently verificationStatus stays PENDING until admin approves.
-      // But we allow them to proceed to document upload.
     }
 
-    // Generate tokens so they can login immediately
+    // Generate tokens
     const tokens = await this.generateTokens({
       userId: entity.id,
-      email: entity.email,
+      email: entity.email || entity.phone,
       role: userRole,
     });
 
@@ -330,6 +348,9 @@ export class AuthService {
       user: {
         ...removeSensitiveData(entity),
         role: userRole,
+        // Include verification state for lawyers
+        isEmailVerified: userRole === UserRole.LAWYER ? (entity as Lawyer).isEmailVerified : undefined,
+        isPhoneVerified: userRole === UserRole.LAWYER ? (entity as Lawyer).isPhoneVerified : undefined,
       },
       ...tokens,
     };

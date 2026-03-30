@@ -20,8 +20,14 @@ export class Lawyer {
   @Column({ unique: true })
   email: string;
 
+  @Column({ default: false, name: 'is_email_verified' })
+  isEmailVerified: boolean;
+
   @Column({ unique: true })
   phone: string;
+
+  @Column({ default: false, name: 'is_phone_verified' })
+  isPhoneVerified: boolean;
 
   @Column({ name: 'password_hash' })
   passwordHash: string;
