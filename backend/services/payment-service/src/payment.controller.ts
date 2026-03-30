@@ -26,12 +26,12 @@ export class PaymentController {
   }
 
   @Post('webhook/razorpay')
-  async razorpayWebhook(@Body() body: any, @Headers('x-razorpay-signature') signature: string) {
+  async razorpayWebhook(@Body() body: Record<string, unknown>, @Headers('x-razorpay-signature') signature: string) {
     return this.paymentService.handleRazorpayWebhook(body, signature);
   }
 
   @Post('webhook/paytm')
-  async paytmWebhook(@Body() body: any) {
+  async paytmWebhook(@Body() body: Record<string, unknown>) {
     return this.paymentService.handlePaytmWebhook(body);
   }
 }

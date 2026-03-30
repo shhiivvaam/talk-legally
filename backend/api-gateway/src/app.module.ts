@@ -11,10 +11,10 @@ import { AuthGuard } from './auth/auth.guard';
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     LoggerModule,
-    ThrottlerModule.forRoot({
-      ttl: 60,
+    ThrottlerModule.forRoot([{
+      ttl: 60000,
       limit: 100,
-    }),
+    }]),
   ],
   controllers: [ApiGatewayController],
   providers: [

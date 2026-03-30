@@ -44,11 +44,11 @@ export class PaymentService {
     }
   }
 
-  async handleRazorpayWebhook(body: any, signature: string) {
+  async handleRazorpayWebhook(body: Record<string, unknown>, signature: string) {
     return this.razorpayProvider.handleWebhook(body, signature);
   }
 
-  async handlePaytmWebhook(body: any) {
+  async handlePaytmWebhook(body: Record<string, unknown>) {
     return this.paytmProvider.handleWebhook(body);
   }
 }

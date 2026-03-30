@@ -292,8 +292,12 @@ export class AuthService {
       });
 
       return tokens;
-    } catch (error) {
-      this.logger.error('Failed to refresh token', error.stack, 'AuthService');
+    } catch (error: unknown) {
+      this.logger.error(
+        'Failed to refresh token',
+        error instanceof Error ? error.stack : String(error),
+        'AuthService',
+      );
       throw new UnauthorizedException('Invalid refresh token');
     }
   }

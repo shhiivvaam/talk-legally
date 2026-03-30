@@ -28,7 +28,7 @@ export class LoggingInterceptor implements NestInterceptor {
       body: this.sanitizeBody(body),
       query,
       params,
-      ip: request.ip || request.connection?.remoteAddress,
+      ip: request.ip || request.socket?.remoteAddress,
       userAgent: request.get('user-agent'),
     });
 

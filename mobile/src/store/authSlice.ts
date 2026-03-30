@@ -1,8 +1,16 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { authService } from '../services/api';
 
+interface UserProfile {
+  id: string;
+  email: string;
+  phone?: string;
+  name: string;
+  role: string;
+}
+
 interface AuthState {
-  user: any | null;
+  user: UserProfile | null;
   token: string | null;
   refreshToken: string | null;
   isLoading: boolean;
@@ -43,7 +51,7 @@ const authSlice = createSlice({
       state.refreshToken = null;
       state.isAuthenticated = false;
     },
-    setCredentials: (state, action: PayloadAction<{ user: any; token: string; refreshToken: string }>) => {
+    setCredentials: (state, action: PayloadAction<{ user: UserProfile; token: string; refreshToken: string }>) => {
       state.user = action.payload.user;
       state.token = action.payload.token;
       state.refreshToken = action.payload.refreshToken;

@@ -3,8 +3,16 @@ import { Grid, Card, CardContent, Typography } from '@mui/material';
 import { useQuery } from 'react-query';
 import { adminService } from '../services/api';
 
+interface AnalyticsData {
+  totalSessions: number;
+  totalRevenue: number;
+  activeUsers: number;
+  activeLawyers: number;
+}
+
 export default function Dashboard() {
-  const { data: analytics } = useQuery('analytics', () => adminService.getAnalytics('week'));
+  const { data: response } = useQuery('analytics', () => adminService.getAnalytics('week'));
+  const analytics = response?.data as AnalyticsData | undefined;
 
   return (
     <Grid container spacing={3}>
@@ -12,7 +20,7 @@ export default function Dashboard() {
         <Card>
           <CardContent>
             <Typography color="textSecondary">Total Sessions</Typography>
-            <Typography variant="h4">{analytics?.totalSessions || 0}</Typography>
+            <Typography variant="h4">{analytics?.totalSessions ?? 0}</Typography>
           </CardContent>
         </Card>
       </Grid>
@@ -20,7 +28,7 @@ export default function Dashboard() {
         <Card>
           <CardContent>
             <Typography color="textSecondary">Total Revenue</Typography>
-            <Typography variant="h4">₹{analytics?.totalRevenue?.toFixed(2) || 0}</Typography>
+            <Typography variant="h4">₹{analytics?.totalRevenue?.toFixed(2) ?? '0.00'}</Typography>
           </CardContent>
         </Card>
       </Grid>
@@ -28,7 +36,7 @@ export default function Dashboard() {
         <Card>
           <CardContent>
             <Typography color="textSecondary">Active Users</Typography>
-            <Typography variant="h4">{analytics?.activeUsers || 0}</Typography>
+            <Typography variant="h4">{analytics?.activeUsers ?? 0}</Typography>
           </CardContent>
         </Card>
       </Grid>
@@ -36,7 +44,7 @@ export default function Dashboard() {
         <Card>
           <CardContent>
             <Typography color="textSecondary">Active Lawyers</Typography>
-            <Typography variant="h4">{analytics?.activeLawyers || 0}</Typography>
+            <Typography variant="h4">{analytics?.activeLawyers ?? 0}</Typography>
           </CardContent>
         </Card>
       </Grid>
