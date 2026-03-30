@@ -39,8 +39,16 @@ export const authApi = {
         const response = await api.post('/auth/login', data);
         return response.data;
     },
+    verifyOtp: async (data: any) => {
+        const response = await api.post('/auth/verify-otp', data);
+        return response.data;
+    },
     register: async (data: any) => {
         const response = await api.post('/auth/register/user', data);
+        return response.data;
+    },
+    registerLawyer: async (data: any) => {
+        const response = await api.post('/auth/register/lawyer', data);
         return response.data;
     },
     getProfile: async () => {
@@ -57,6 +65,17 @@ export const userApi = {
     },
     getProfile: async () => {
         const response = await api.get('/users/profile');
+        return response.data;
+    },
+};
+
+export const lawyerApi = {
+    uploadDocuments: async (data: { barCouncilDocUrl: string; govtIdDocUrl: string }) => {
+        const response = await api.post('/lawyers/documents', data);
+        return response.data;
+    },
+    getProfile: async () => {
+        const response = await api.get('/lawyers/profile');
         return response.data;
     },
 };

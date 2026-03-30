@@ -4,9 +4,10 @@ import { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { authApi } from '../../services/api';
 import { useAuthStore } from '../../stores/auth.store';
-import { Eye, EyeOff } from 'lucide-react-native';
+import { Eye, EyeOff, Scale, User } from 'lucide-react-native';
 
 import { Image } from 'expo-image';
+import clsx from 'clsx';
 
 export default function LoginScreen() {
     const router = useRouter();
@@ -15,6 +16,7 @@ export default function LoginScreen() {
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [role, setRole] = useState<'user' | 'lawyer'>('user');
 
     const handleLogin = async () => {
         // Prevent crashes by validating input first
@@ -37,8 +39,25 @@ export default function LoginScreen() {
 
         setIsLoading(true);
         try {
-            const data = await authApi.login({ email, password });
+            const data = await authApi.login({ email, password, role });
             if (data?.user && data?.accessToken) {
+                // Check verification status for lawyers
+                if (role === 'lawyer' && data.user.verificationStatus === 'pending') {
+                    Alert.alert(
+                        'Verification Pending',
+                        'Your account is currently under review by our admin team. You will be notified once verified.'
+                    );
+                    return;
+                }
+
+                if (role === 'lawyer' && data.user.verificationStatus === 'rejected') {
+                    Alert.alert(
+                        'Application Rejected',
+                        'Your application has been rejected. Please contact support for more details.'
+                    );
+                    return;
+                }
+
                 await login(data.user, data.accessToken);
                 // Router replacement should happen after state update
                 router.replace('/(tabs)');
@@ -60,14 +79,60 @@ export default function LoginScreen() {
                 behavior={Platform.OS === 'ios' ? 'padding' : undefined}
                 className="flex-1 justify-center px-6"
             >
-                <View className="items-center mb-10">
+                <View className="items-center mb-8">
                     <Image
                         source={require('../../assets/images/icon.png')}
-                        style={{ width: 120, height: 120, marginBottom: 16 }}
+                        style={{ width: 100, height: 100, marginBottom: 12 }}
                         contentFit="contain"
                     />
                     <Text className="text-3xl font-bold text-primary-900">Talk Legally</Text>
                     <Text className="text-gray-500 mt-2">Consult with top lawyers instantly</Text>
+                </View>
+
+                {/* Role Switcher */}
+                <View className="flex-row bg-gray-100 p-1 rounded-xl mb-8">
+                    <TouchableOpacity
+                        onPress={() => setRole('user')}
+                        style={{
+                            flex: 1,
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            paddingVertical: 12,
+                            borderRadius: 8,
+                            backgroundColor: role === 'user' ? 'white' : 'transparent',
+                            gap: 8,
+                            shadowOpacity: role === 'user' ? 0.1 : 0,
+                            shadowRadius: 2,
+                            elevation: role === 'user' ? 2 : 0,
+                        }}
+                    >
+                        <User size={18} color={role === 'user' ? "#0F172A" : "#6B7280"} />
+                        <Text style={{ fontWeight: '600', color: role === 'user' ? "#0F172A" : "#6B7280" }}>
+                            Client
+                        </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        onPress={() => setRole('lawyer')}
+                        style={{
+                            flex: 1,
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            paddingVertical: 12,
+                            borderRadius: 8,
+                            backgroundColor: role === 'lawyer' ? 'white' : 'transparent',
+                            gap: 8,
+                            shadowOpacity: role === 'lawyer' ? 0.1 : 0,
+                            shadowRadius: 2,
+                            elevation: role === 'lawyer' ? 2 : 0,
+                        }}
+                    >
+                        <Scale size={18} color={role === 'lawyer' ? "#0F172A" : "#6B7280"} />
+                        <Text style={{ fontWeight: '600', color: role === 'lawyer' ? "#0F172A" : "#6B7280" }}>
+                            Lawyer
+                        </Text>
+                    </TouchableOpacity>
                 </View>
 
                 <View className="gap-y-4">
@@ -113,12 +178,15 @@ export default function LoginScreen() {
                     </TouchableOpacity>
                 </View>
 
-                <View className="flex-row justify-center mt-6 p-4">
-                    <Text className="text-gray-500">New to Talk Legally? </Text>
-                    <TouchableOpacity onPress={() => router.push('/(auth)/signup')}>
-                        <Text className="text-primary-900 font-bold">Create Account</Text>
-                    </TouchableOpacity>
-                </View>
+                <Text className="text-center mt-6 p-4 text-gray-500">
+                    New to Talk Legally?{' '}
+                    <Text
+                        className="text-primary-900 font-bold"
+                        onPress={() => router.push({ pathname: '/(auth)/signup', params: { role } })}
+                    >
+                        Create Account
+                    </Text>
+                </Text>
             </KeyboardAvoidingView>
         </SafeAreaView>
     );
